@@ -1,11 +1,14 @@
 package com.dav1n9.lectureapi.dto;
 
 import com.dav1n9.lectureapi.entity.Category;
+import com.dav1n9.lectureapi.entity.Comment;
 import com.dav1n9.lectureapi.entity.Lecture;
 import com.dav1n9.lectureapi.entity.Teacher;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.Comparator;
+import java.util.List;
 
 @Getter
 public class LectureResponse {
@@ -16,6 +19,7 @@ public class LectureResponse {
     private final Category category;
     private final LocalDateTime createdAt;
     private final TeacherDTO teacher;
+    private final List<CommentResponse> comments;
     public LectureResponse(Lecture lecture) {
         this.id = lecture.getId();
         this.title = lecture.getTitle();
@@ -24,6 +28,9 @@ public class LectureResponse {
         this.category = lecture.getCategory();
         this.createdAt = lecture.getCreatedAt();
         this.teacher = new TeacherDTO(lecture.getTeacher());
+        this.comments = lecture.getComments().stream()
+                .sorted(Comparator.comparingLong(Comment::getOrder))
+                .map(CommentResponse::new).toList();
     }
     @Getter
     private static class TeacherDTO {
