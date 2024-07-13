@@ -3,9 +3,11 @@ package com.dav1n9.lectureapi.service;
 import com.dav1n9.lectureapi.dto.MemberRequest;
 import com.dav1n9.lectureapi.entity.Member;
 import com.dav1n9.lectureapi.repository.MemberRepository;
+import com.dav1n9.lectureapi.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -38,5 +40,10 @@ public class MemberService {
                 .role(request.getRole())
                 .build();
         memberRepository.save(member);
+    }
+
+    @Transactional
+    public void delete(UserDetailsImpl userDetails) {
+        memberRepository.delete(userDetails.getUser());
     }
 }
