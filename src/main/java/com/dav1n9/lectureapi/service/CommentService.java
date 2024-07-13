@@ -4,6 +4,7 @@ import com.dav1n9.lectureapi.dto.CommentRequest;
 import com.dav1n9.lectureapi.dto.CommentResponse;
 import com.dav1n9.lectureapi.entity.Comment;
 import com.dav1n9.lectureapi.entity.Lecture;
+import com.dav1n9.lectureapi.entity.Member;
 import com.dav1n9.lectureapi.repository.CommentRepository;
 import com.dav1n9.lectureapi.repository.LectureRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,24 +21,25 @@ public class CommentService {
     private final LectureRepository lectureRepository;
 
     // 댓글 작성할때는 comment 내용만 보내줘도됨.
-    public CommentResponse saveComment(Long lectureId, CommentRequest request) {
+    public CommentResponse saveComment(Member member, Long lectureId, CommentRequest request) {
         Lecture lecture = findLecture(lectureId);
 
         // 최대 order 구하기 (댓글 갯수 구하면 될듯)
         long maxOrder = commentRepository.count();
         if (maxOrder == 0)
-            return new CommentResponse(commentRepository.save(request.toComment(lecture, 1L, 1L)));
+            return new CommentResponse(commentRepository.save(request.toComment(lecture, 1L, 1L, member)));
 
         // 첫 댓글이 아닌 경우, 최대 parent 구하기
         Comment maxParent = commentRepository.findFirstByLectureOrderByParentDesc(lecture)
                 .orElseThrow(NullPointerException::new);
 
-        return new CommentResponse(commentRepository.save(request.toComment(lecture, maxParent.getParent() + 1, maxOrder + 1)));
+        return new CommentResponse(commentRepository
+                .save(request.toComment(lecture, maxParent.getParent() + 1, maxOrder + 1, member)));
     }
 
     // 대댓글 작성할 때는 어떤 댓글의 대댓글인지 필요.
     @Transactional
-    public CommentResponse saveReply(Long lectureId, Long commentId, CommentRequest request) {
+    public CommentResponse saveReply(Member member, Long lectureId, Long commentId, CommentRequest request) {
         Lecture lecture = findLecture(lectureId);
 
         // 작성할 댓글의 부모 댓글 존재 여부 확인
@@ -56,8 +58,8 @@ public class CommentService {
                 lastComment = comments.get(i);
             } else break;
         }
-        order = lastComment.getOrder()+1;
-        reply = request.toReply(lecture, parentComment.getParent(), order, parentComment.getDepth()+1);
+        order = lastComment.getOrder() + 1;
+        reply = request.toReply(lecture, parentComment.getParent(), order, parentComment.getDepth() + 1, member);
 
         // 그 아래 댓글 order +1
         List<Comment> others = commentRepository.findByOrderGreaterThanEqualOrderByOrderAsc(order);
@@ -69,18 +71,24 @@ public class CommentService {
     }
 
     @Transactional
-    public CommentResponse update(Long lectureId, Long commentId, CommentRequest request) {
+    public CommentResponse update(Member member, Long lectureId, Long commentId, CommentRequest request) {
         Lecture lecture = findLecture(lectureId);
         Comment comment = findComment(commentId);
+        if (!comment.getMember().getEmail().equals(member.getEmail())) {
+            throw new IllegalArgumentException("본인이 작성한 글만 수정 가능합니다.");
+        }
         comment.update(request);
 
         return new CommentResponse(comment);
     }
 
     @Transactional
-    public Long delete(Long lectureId, Long commentId) {
+    public Long delete(Member member, Long lectureId, Long commentId) {
         Lecture lecture = findLecture(lectureId);
         Comment comment = findComment(commentId);
+        if (!comment.getMember().getEmail().equals(member.getEmail())) {
+            throw new IllegalArgumentException("본인이 작성한 글만 삭제 가능합니다.");
+        }
 
         List<Comment> comments = commentRepository
                 .findByParentAndOrderGreaterThanEqualOrderByOrderAsc(comment.getParent(), comment.getOrder());
