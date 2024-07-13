@@ -7,6 +7,7 @@ import com.dav1n9.lectureapi.entity.SortField;
 import com.dav1n9.lectureapi.service.LectureService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +20,7 @@ public class LectureController {
     private final LectureService lectureService;
 
     @PostMapping
+    @Secured("ROLE_ADMIN")
     public ResponseEntity<LectureResponse> saveLecture(@RequestBody LectureRequest request) {
         return ResponseEntity.ok()
                 .body(lectureService.save(request));
