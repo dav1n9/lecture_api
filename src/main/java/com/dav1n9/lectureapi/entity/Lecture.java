@@ -31,8 +31,6 @@ public class Lecture {
     @Enumerated(EnumType.STRING)
     private Category category;
 
-    private Integer likes;
-
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -43,6 +41,9 @@ public class Lecture {
 
     @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "lecture", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Like> likes = new ArrayList<>();
 
     @Builder
     public Lecture(String title, Integer price, String description, Category category, Teacher teacher) {
