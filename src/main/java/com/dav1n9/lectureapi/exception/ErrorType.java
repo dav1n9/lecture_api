@@ -10,7 +10,7 @@ public enum ErrorType {
     NOT_FOUND_TEACHER(404, "존재하지 않는 강사입니다."),
     NOT_FOUND_LECTURE(404, "존재하지 않는 강의입니다."),
     NOT_FOUND_COMMENT(404, "존재하지 않는 댓글입니다."),
-    ACCESS_ADMIN_ONLY(403, "해당 기능은 관리자만 접근 가능합니다."),
+    ACCESS_DENIED(403, "해당 기능에 접근할 수 없습니다."),
     DUPLICATE_EMAIL_ERROR(400, "이미 존재하는 이메일입니다."),
     PASSWORD_MISMATCH(401, "비밀번호가 일치하지 않습니다."),
     NOT_VALID_TOKEN(400, "잘못된 토큰입니다."),

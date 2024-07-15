@@ -1,9 +1,13 @@
 package com.dav1n9.lectureapi.config;
 
+import com.dav1n9.lectureapi.dto.ApiResponse;
+import com.dav1n9.lectureapi.exception.ErrorType;
+import com.dav1n9.lectureapi.jwt.JwtUtil;
 import com.dav1n9.lectureapi.security.JwtAuthenticationFilter;
 import com.dav1n9.lectureapi.security.JwtAuthorizationFilter;
-import com.dav1n9.lectureapi.jwt.JwtUtil;
 import com.dav1n9.lectureapi.security.UserDetailsServiceImpl;
+import com.dav1n9.lectureapi.utils.ResponseStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.security.servlet.PathRequest;
 import org.springframework.context.annotation.Bean;
@@ -54,7 +58,6 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // CSRF 설정
         http.csrf(AbstractHttpConfigurer::disable);
 
         // 기본 설정인 Session 방식은 사용하지 않고 JWT 방식을 사용하기 위한 설정
@@ -69,7 +72,15 @@ public class WebSecurityConfig {
                         .anyRequest().authenticated()
         );
 
-        // 필터 관리
+        http.exceptionHandling((exceptionConfig) ->
+                exceptionConfig.accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(ErrorType.ACCESS_DENIED.getCode());
+                    response.setContentType("application/json; charset=UTF-8");
+                    ApiResponse<Object> error = new ApiResponse<>(ResponseStatus.FAILURE, ErrorType.ACCESS_DENIED.getMessage(), null);
+                    response.getWriter().write(new ObjectMapper().writeValueAsString(error));
+                })
+        );
+
         http.addFilterBefore(jwtAuthorizationFilter(), JwtAuthenticationFilter.class);
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
