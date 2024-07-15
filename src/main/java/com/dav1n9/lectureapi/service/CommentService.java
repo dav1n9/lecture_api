@@ -5,6 +5,7 @@ import com.dav1n9.lectureapi.dto.CommentResponse;
 import com.dav1n9.lectureapi.entity.Comment;
 import com.dav1n9.lectureapi.entity.Lecture;
 import com.dav1n9.lectureapi.entity.Member;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.repository.CommentRepository;
 import com.dav1n9.lectureapi.repository.LectureRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,7 +32,7 @@ public class CommentService {
 
         // 첫 댓글이 아닌 경우, 최대 parent 구하기
         Comment maxParent = commentRepository.findFirstByLectureOrderByParentDesc(lecture)
-                .orElseThrow(NullPointerException::new);
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_COMMENT.getMessage()));
 
         return new CommentResponse(commentRepository
                 .save(request.toComment(lecture, maxParent.getParent() + 1, maxOrder + 1, member)));
@@ -75,7 +76,7 @@ public class CommentService {
         Lecture lecture = findLecture(lectureId);
         Comment comment = findComment(commentId);
         if (!comment.getMember().getEmail().equals(member.getEmail())) {
-            throw new IllegalArgumentException("본인이 작성한 글만 수정 가능합니다.");
+            throw new IllegalArgumentException(ErrorType.NOT_AUTHORIZED_TO_DELETE.getMessage());
         }
         comment.update(request);
 
@@ -87,7 +88,7 @@ public class CommentService {
         Lecture lecture = findLecture(lectureId);
         Comment comment = findComment(commentId);
         if (!comment.getMember().getEmail().equals(member.getEmail())) {
-            throw new IllegalArgumentException("본인이 작성한 글만 삭제 가능합니다.");
+            throw new IllegalArgumentException(ErrorType.NOT_AUTHORIZED_TO_MODIFY.getMessage());
         }
 
         List<Comment> comments = commentRepository
@@ -106,11 +107,11 @@ public class CommentService {
 
     private Lecture findLecture(Long lectureId) {
         return lectureRepository.findById(lectureId)
-                .orElseThrow(NullPointerException::new);
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_LECTURE.getMessage()));
     }
 
     private Comment findComment(Long commentId) {
         return commentRepository.findById(commentId)
-                .orElseThrow(NullPointerException::new);
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_COMMENT.getMessage()));
     }
 }

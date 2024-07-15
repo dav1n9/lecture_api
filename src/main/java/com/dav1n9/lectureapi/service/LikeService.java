@@ -3,6 +3,7 @@ package com.dav1n9.lectureapi.service;
 import com.dav1n9.lectureapi.entity.Lecture;
 import com.dav1n9.lectureapi.entity.Like;
 import com.dav1n9.lectureapi.entity.Member;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.repository.LectureRepository;
 import com.dav1n9.lectureapi.repository.LikeRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class LikeService {
     public void like(Member member, Long lectureId) {
         Lecture lecture = findLecture(lectureId);
         if (findLike(lecture, member).isPresent()) {
-            throw new IllegalArgumentException("이미 좋아요를 눌렀습니다.");
+            throw new IllegalArgumentException(ErrorType.ALREADY_LIKED.getMessage());
         }
         likeRepository.save(new Like(lecture, member));
     }
@@ -29,13 +30,14 @@ public class LikeService {
         Lecture lecture = findLecture(lectureId);
         Optional<Like> like = findLike(lecture, member);
         if (like.isEmpty()) {
-            throw new IllegalArgumentException("좋아요를 누르지 않았습니다.");
+            throw new IllegalArgumentException(ErrorType.NOT_LIKED.getMessage());
         }
         likeRepository.delete(like.get());
     }
 
     private Lecture findLecture(Long lectureId) {
-        return lectureRepository.findById(lectureId).orElseThrow(NullPointerException::new);
+        return lectureRepository.findById(lectureId)
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_LECTURE.getMessage()));
     }
 
     private Optional<Like> findLike(Lecture lecture, Member member) {

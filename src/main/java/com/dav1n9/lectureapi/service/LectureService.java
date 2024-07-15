@@ -6,6 +6,7 @@ import com.dav1n9.lectureapi.entity.Category;
 import com.dav1n9.lectureapi.entity.Lecture;
 import com.dav1n9.lectureapi.entity.SortField;
 import com.dav1n9.lectureapi.entity.Teacher;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.repository.LectureRepository;
 import com.dav1n9.lectureapi.repository.TeacherRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,13 +24,13 @@ public class LectureService {
 
     public LectureResponse save(LectureRequest request) {
         Teacher teacher = teacherRepository.findById(request.getTeacherId())
-                .orElseThrow(NullPointerException::new);
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_TEACHER.getMessage()));
         return new LectureResponse(lectureRepository.save(request.toEntity(teacher)));
     }
 
     public LectureResponse findById(Long lectureId) {
         Lecture lecture = lectureRepository.findById(lectureId)
-                .orElseThrow(NullPointerException::new);
+                .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_LECTURE.getMessage()));
         return new LectureResponse(lecture);
     }
 
@@ -42,7 +43,7 @@ public class LectureService {
         switch (sort) {
             case TITLE -> lectures.sort(Comparator.comparing(Lecture::getTitle));
             case PRICE -> lectures.sort(Comparator.comparing(Lecture::getPrice));
-            default -> throw new IllegalArgumentException("Invalid sort parameter");
+            default -> throw new IllegalArgumentException(ErrorType.INVALID_SORT_PARAMETER.getMessage());
         }
         return lectures.stream().map(LectureResponse::new).toList();
     }

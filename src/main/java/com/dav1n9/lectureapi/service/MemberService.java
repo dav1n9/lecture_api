@@ -2,6 +2,7 @@ package com.dav1n9.lectureapi.service;
 
 import com.dav1n9.lectureapi.dto.MemberRequest;
 import com.dav1n9.lectureapi.entity.Member;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.repository.MemberRepository;
 import com.dav1n9.lectureapi.security.UserDetailsImpl;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class MemberService {
         // 회원 중복 확인
         Optional<Member> checkEmail = memberRepository.findByEmail(email);
         if (checkEmail.isPresent()) {
-            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+            throw new IllegalArgumentException(ErrorType.DUPLICATE_EMAIL_ERROR.getMessage());
         }
 
         // 사용자 등록
