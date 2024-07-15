@@ -17,6 +17,7 @@ public class LectureResponse {
     private final Integer price;
     private final String description;
     private final Category category;
+    private final Integer likes;
     private final LocalDateTime createdAt;
     private final TeacherDTO teacher;
     private final List<CommentResponse> comments;
@@ -26,6 +27,7 @@ public class LectureResponse {
         this.price = lecture.getPrice();
         this.description = lecture.getDescription();
         this.category = lecture.getCategory();
+        this.likes = lecture.getLikes().size();
         this.createdAt = lecture.getCreatedAt();
         this.teacher = new TeacherDTO(lecture.getTeacher());
         this.comments = lecture.getComments().stream()
