@@ -1,6 +1,10 @@
 package com.dav1n9.lectureapi.security;
 
+import com.dav1n9.lectureapi.dto.ApiResponse;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.jwt.JwtUtil;
+import com.dav1n9.lectureapi.utils.ResponseStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -32,8 +36,10 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
 
         if (StringUtils.hasText(tokenValue)) {
 
-            if (!jwtUtil.validateToken(tokenValue)) {
+            String validateToken = jwtUtil.validateToken(tokenValue);
+            if (validateToken != null) {
                 log.error("Token Error");
+                setTokenError(res, validateToken);
                 return;
             }
 
@@ -43,6 +49,7 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
                 setAuthentication(info.getSubject());
             } catch (Exception e) {
                 log.error(e.getMessage());
+                setTokenError(res, ErrorType.NOT_VALID_TOKEN.getMessage());
                 return;
             }
         }
@@ -63,5 +70,18 @@ public class JwtAuthorizationFilter extends OncePerRequestFilter {
     private Authentication createAuthentication(String email) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
         return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    }
+
+    private void setTokenError(HttpServletResponse response, String message) {
+        response.setContentType("application/json; charset=UTF-8");
+        response.setStatus(401);
+
+
+        ApiResponse<Object> error = new ApiResponse<>(ResponseStatus.FAILURE, message, null);
+        try {
+            response.getWriter().write(new ObjectMapper().writeValueAsString(error));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

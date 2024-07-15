@@ -1,8 +1,11 @@
 package com.dav1n9.lectureapi.security;
 
+import com.dav1n9.lectureapi.dto.ApiResponse;
 import com.dav1n9.lectureapi.dto.MemberRequest;
 import com.dav1n9.lectureapi.entity.Role;
+import com.dav1n9.lectureapi.exception.ErrorType;
 import com.dav1n9.lectureapi.jwt.JwtUtil;
+import com.dav1n9.lectureapi.utils.ResponseStatus;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -51,12 +54,27 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         Role role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
 
         String token = jwtUtil.createToken(email, role);
+
+        apiResponse(ResponseStatus.SUCCESS, response, "로그인 성공");
         response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);  // 헤더에 토큰 담기
     }
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
         log.info("로그인 실패");
-        response.setStatus(401);
+        apiResponse(ResponseStatus.FAILURE, response, ErrorType.FAIL_LOGIN.getMessage());
+    }
+
+    private void apiResponse(ResponseStatus status, HttpServletResponse response, String message) {
+        response.setContentType("application/json; charset=UTF-8");
+        if (status == ResponseStatus.FAILURE)
+            response.setStatus(401);
+
+        ApiResponse<Object> error = new ApiResponse<>(status, message, null);
+        try {
+            response.getWriter().write(new ObjectMapper().writeValueAsString(error));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }
