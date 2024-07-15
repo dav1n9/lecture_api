@@ -1,10 +1,11 @@
 package com.dav1n9.lectureapi.controller;
 
+import com.dav1n9.lectureapi.dto.ApiResponse;
 import com.dav1n9.lectureapi.dto.TeacherRequest;
 import com.dav1n9.lectureapi.dto.TeacherResponse;
 import com.dav1n9.lectureapi.service.TeacherService;
+import com.dav1n9.lectureapi.utils.ApiUtils;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,8 +21,7 @@ public class TeacherController {
 
     @Secured("ROLE_ADMIN")
     @PostMapping
-    public ResponseEntity<TeacherResponse> saveTeacher(@RequestBody TeacherRequest request) {
-        return ResponseEntity.ok()
-                .body(teacherService.save(request));
+    public ApiResponse<TeacherResponse> saveTeacher(@RequestBody TeacherRequest request) {
+        return ApiUtils.SUCCESS(null, teacherService.save(request));
     }
 }
