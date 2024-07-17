@@ -1,5 +1,7 @@
 package com.dav1n9.lectureapi.global.security;
 
+import com.dav1n9.lectureapi.domain.refreshToken.RefreshToken;
+import com.dav1n9.lectureapi.domain.refreshToken.RefreshTokenRepository;
 import com.dav1n9.lectureapi.global.api.ApiResponse;
 import com.dav1n9.lectureapi.domain.member.dto.MemberRequest;
 import com.dav1n9.lectureapi.domain.member.entity.Role;
@@ -22,9 +24,11 @@ import java.io.IOException;
 @Slf4j(topic = "로그인 및 JWT 생성")
 public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     private final JwtUtil jwtUtil;
+    private final RefreshTokenRepository refreshTokenRepository;
 
-    public JwtAuthenticationFilter(JwtUtil jwtUtil) {
+    public JwtAuthenticationFilter(JwtUtil jwtUtil, RefreshTokenRepository refreshTokenRepository) {
         this.jwtUtil = jwtUtil;
+        this.refreshTokenRepository = refreshTokenRepository;
         setFilterProcessesUrl("/members/login");
     }
 
@@ -52,11 +56,16 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         log.info("로그인 성공 및 JWT 생성");
         String email = ((UserDetailsImpl) authResult.getPrincipal()).getUsername();
         Role role = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getRole();
+        Long id = ((UserDetailsImpl) authResult.getPrincipal()).getUser().getId();
 
-        String token = jwtUtil.createToken(email, role);
+        String accessToken = jwtUtil.createAccessToken(email, role);
+        String refreshToken = jwtUtil.createRefreshToken(id);
 
         apiResponse(ResponseStatus.SUCCESS, response, "로그인 성공");
-        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, token);  // 헤더에 토큰 담기
+        response.addHeader(JwtUtil.AUTHORIZATION_HEADER, accessToken);  // 헤더에 토큰 담기
+        response.addHeader("RefreshToken", refreshToken);
+
+        refreshTokenRepository.save(new RefreshToken(refreshToken, id));
     }
 
     @Override

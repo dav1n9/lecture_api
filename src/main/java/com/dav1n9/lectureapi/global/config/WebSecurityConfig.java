@@ -1,5 +1,6 @@
 package com.dav1n9.lectureapi.global.config;
 
+import com.dav1n9.lectureapi.domain.refreshToken.RefreshTokenRepository;
 import com.dav1n9.lectureapi.global.api.ApiResponse;
 import com.dav1n9.lectureapi.global.exception.ErrorType;
 import com.dav1n9.lectureapi.global.jwt.JwtUtil;
@@ -33,6 +34,7 @@ public class WebSecurityConfig {
     private final JwtUtil jwtUtil;
     private final UserDetailsServiceImpl userDetailsService;
     private final AuthenticationConfiguration authenticationConfiguration;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -46,7 +48,7 @@ public class WebSecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
-        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil);
+        JwtAuthenticationFilter filter = new JwtAuthenticationFilter(jwtUtil, refreshTokenRepository);
         filter.setAuthenticationManager(authenticationManager(authenticationConfiguration));
         return filter;
     }
@@ -68,7 +70,7 @@ public class WebSecurityConfig {
         http.authorizeHttpRequests((authorizeHttpRequests) ->
                 authorizeHttpRequests
                         .requestMatchers(PathRequest.toStaticResources().atCommonLocations()).permitAll()
-                        .requestMatchers("/members/**", "/lectures/**",
+                        .requestMatchers("/members/**", "/lectures/**", "/refresh",
                                 "/swagger/**", "/swagger.html", "/swagger-ui/**", "/api-docs/**").permitAll()
                         .anyRequest().authenticated()
         );
