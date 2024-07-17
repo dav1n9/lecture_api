@@ -25,7 +25,6 @@ public class RefreshTokenService {
      */
     @Transactional
     public String getAccess(String refreshToken) {
-        System.out.println(refreshToken);
         RefreshToken token = refreshTokenRepository.findById(refreshToken)
                 .orElseThrow(() -> new IllegalArgumentException(ErrorType.EXPIRED_REFRESH_TOKEN.getMessage()));
 

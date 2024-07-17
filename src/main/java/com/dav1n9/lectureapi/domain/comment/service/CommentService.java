@@ -21,16 +21,20 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final LectureRepository lectureRepository;
 
-    // 댓글 작성할때는 comment 내용만 보내줘도됨.
+    /**
+     * 댓글을 저장하는 메소드
+     * @param member 댓글을 작성한 사용자
+     * @param lectureId 댓글을 작성한 강의
+     * @param request 댓글 내용이 담긴 객체
+     * @return 저장된 댓글 정보
+     */
     public CommentResponse saveComment(Member member, Long lectureId, CommentRequest request) {
         Lecture lecture = findLecture(lectureId);
 
-        // 최대 order 구하기 (댓글 갯수 구하면 될듯)
         long maxOrder = commentRepository.count();
         if (maxOrder == 0)
             return new CommentResponse(commentRepository.save(request.toComment(lecture, 1L, 1L, member)));
 
-        // 첫 댓글이 아닌 경우, 최대 parent 구하기
         Comment maxParent = commentRepository.findFirstByLectureOrderByParentDesc(lecture)
                 .orElseThrow(() -> new NullPointerException(ErrorType.NOT_FOUND_COMMENT.getMessage()));
 
@@ -38,16 +42,19 @@ public class CommentService {
                 .save(request.toComment(lecture, maxParent.getParent() + 1, maxOrder + 1, member)));
     }
 
-    // 대댓글 작성할 때는 어떤 댓글의 대댓글인지 필요.
+    /**
+     * 대댓글을 저장하는 메소드.
+     * 어떤 댓글의 대댓글인지에 대한 정보가 필요하다.
+     * @param member 댓글을 작성한 사용자
+     * @param lectureId 댓글을 작성한 강의
+     * @param commentId 작성한 대댓글의 부모 댓글 아이디
+     * @param request 댓글 내용이 담긴 객체
+     * @return 저장된 댓글 정보
+     */
     @Transactional
     public CommentResponse saveReply(Member member, Long lectureId, Long commentId, CommentRequest request) {
         Lecture lecture = findLecture(lectureId);
-
-        // 작성할 댓글의 부모 댓글 존재 여부 확인
         Comment parentComment = findComment(commentId);
-
-        // parent 는 부모 댓글과 동일, 부모 댓글의 자식 댓글 갯수 + 1 순서로 추가, depth 는 부모 댓글의 depth +1
-        // 부모 댓글의 댓글 중 가장 마지막 댓글 찾기
         List<Comment> comments = commentRepository
                 .findByParentAndOrderGreaterThanEqualOrderByOrderAsc(parentComment.getParent(), parentComment.getOrder());
 
@@ -62,7 +69,6 @@ public class CommentService {
         order = lastComment.getOrder() + 1;
         reply = request.toReply(lecture, parentComment.getParent(), order, parentComment.getDepth() + 1, member);
 
-        // 그 아래 댓글 order +1
         List<Comment> others = commentRepository.findByOrderGreaterThanEqualOrderByOrderAsc(order);
         for (Comment comment : others) {
             comment.setOrder(++order);
