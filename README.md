@@ -14,4 +14,4 @@
 - 배포 및 CI/CD 설정 완료 후 배포 버전으로 수정할 예정
 
 ## ERD
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/b38c5394-c582-4abb-b209-2e99b83b7c09/07411a65-c7f9-4d4b-9a96-cb1439ba9e88/Untitled.png)
+<img width="622" alt="erd" src="https://github.com/user-attachments/assets/631cae8c-247b-4567-bf8b-36853572b54c">
