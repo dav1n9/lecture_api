@@ -29,9 +29,18 @@ jobs:
         run: |
           docker login -u ${{ secrets.DOCKER_HUB_USERNAME }} -p ${{ secrets.DOCKER_HUB_PASSWORD }}
           docker build -t lecture-api . 
-          docker tag lecture-api davin9909/lecture-api:${GITHUB_SHA}
-          docker push davin9909/lecture-api:${GITHUB_SHA}
+          docker tag lecture-api davin9909/lecture-api:${{ github.sha }}
+          docker push davin9909/lecture-api:${{ github.sha }}
 
       # cd
-
-
+      - name: Deploy to server
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            docker pull davin9909/lecture-api:${{ github.sha }}
+            docker stop quizzical_cray || true
+            docker rm quizzical_cray || true
+            docker run -d --name quizzical_cray -p 8080:8080 davin9909/lecture-api:${{ github.sha }}
