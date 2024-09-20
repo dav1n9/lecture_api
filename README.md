@@ -12,14 +12,15 @@
 
 ## 주요 기능
 
-### ⭐️ spring security 를 사용하여 인증/인가 구현
-- 사용자 권한에 따라 접근을 제어합니다.
+spring security 를 사용하여 인증/인가 구현
+-  사용자 권한에 따라 접근을 제어합니다.
 
-### ⭐️ Access Token 과 Refresh Token 활용한 로그인
+Access Token 과 Refresh Token 활용한 로그인
 - Refresh Token 은 Redis 에 저장하여 빠른 조회와 관리가 가능합니다.
 
-### ⭐️ 강사 및 강의 등록 / 조회 기능
-### ⭐️ 강의 좋아요 및 무한 댓글 작성 기능
+강사 및 강의 등록 / 조회 기능
+
+강의 좋아요 및 무한 댓글 작성 기능
 
 ## API
 
